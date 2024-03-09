@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
+import * as session from 'express-session';
 
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -10,10 +12,22 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
-  // Logger
+  // Enable auto-validation
+  app.useGlobalPipes(new ValidationPipe());
+
+  // Enable logging
   app.useLogger(app.get(Logger));
 
-  // Swagger
+  // Enable session management
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
+
+  // Enable Swagger
   const config = new DocumentBuilder()
     .setTitle('ToiletPeek API')
     .setDescription('API description of the application')
@@ -22,7 +36,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Start the app
+  // Start the application
   await app.listen(8535);
 }
 

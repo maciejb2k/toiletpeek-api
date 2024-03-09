@@ -88,6 +88,9 @@ devDependencies:
   '@types/express':
     specifier: ^4.17.17
     version: 4.17.21
+  '@types/express-session':
+    specifier: ^1.18.0
+    version: 1.18.0
   '@types/jest':
     specifier: ^29.5.2
     version: 29.5.12
@@ -1324,6 +1327,12 @@ packages:
       '@types/qs': 6.9.12
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
+    dev: true
+
+  /@types/express-session@1.18.0:
+    resolution: {integrity: sha512-27JdDRgor6PoYlURY+Y5kCakqp5ulC0kmf7y+QwaY+hv9jEFuQOThgkjyA53RP3jmKuBsH5GR6qEfFmvb8mwOA==}
+    dependencies:
+      '@types/express': 4.17.21
     dev: true
 
   /@types/express@4.17.21:
