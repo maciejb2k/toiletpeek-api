@@ -1,25 +1,29 @@
 import {
-  BadRequestException,
   Injectable,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { User } from 'src/users/user.entity';
 import { UsersService } from 'src/users/users.service';
-import { SignInDto, SignUpDto } from './dto';
-import { Request } from 'express';
+import { SignUpDto } from './dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-  async signIn(request: Request, signInDto: SignInDto): Promise<User> {
-    const { email, password } = signInDto;
+  async signIn(user: User): Promise<any> {
+    const payload = { email: user.email, sub: user.id };
+    const accessToken = this.jwtService.sign(payload);
 
-    const user = await this.validateUser(email, password);
-
-    return user;
+    return {
+      accessToken,
+    };
   }
 
   async signUp(signUpDto: SignUpDto): Promise<User> {
@@ -28,10 +32,13 @@ export class AuthService {
     const existingUser = await this.usersService.findByEmail(email);
 
     if (existingUser) {
-      throw new BadRequestException('Email already in use');
+      throw new UnprocessableEntityException(
+        'Sorry, this email address is not available. Please choose another one.',
+      );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await this.usersService.create({
       ...signUpDto,
       password: hashedPassword,

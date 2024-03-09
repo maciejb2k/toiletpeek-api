@@ -4,7 +4,8 @@ import { Logger } from 'nestjs-pino';
 import * as session from 'express-session';
 
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { HttpStatus, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -12,8 +13,15 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
+  // Get the ConfigService
+  const configService = app.get(ConfigService);
+
   // Enable auto-validation
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+    }),
+  );
 
   // Enable logging
   app.useLogger(app.get(Logger));
@@ -21,7 +29,7 @@ async function bootstrap() {
   // Enable session management
   app.use(
     session({
-      secret: process.env.SESSION_SECRET,
+      secret: configService.get<string>('SESSION_SECRET'),
       resave: false,
       saveUninitialized: false,
     }),
