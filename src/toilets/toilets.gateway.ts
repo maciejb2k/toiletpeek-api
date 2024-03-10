@@ -1,38 +1,41 @@
 import {
+  ConnectedSocket,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
+import { ToiletsService } from './toilets.service';
+import { AuthSocket } from 'src/common/types';
 
 @WebSocketGateway({ cors: true })
 export class ToiletsGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect
 {
+  constructor(private readonly toiletsService: ToiletsService) {}
+
   @SubscribeMessage('sensors_data')
-  handleMessage(client: any, payload: any): string {
-    console.log(payload);
-    return 'Hello world!';
-  }
+  handleSensorsData(@ConnectedSocket() socket: AuthSocket, payload: any) {}
 
-  handleConnection(client: any) {
-    const token = client.handshake.auth.token;
-    console.log(client.handshake.auth.token);
+  handleConnection(@ConnectedSocket() socket: AuthSocket): void {
+    const token = socket.handshake.headers.token as string;
+    const toiletId = socket.handshake.headers.toiletId as string;
+    const deviceId = socket.handshake.headers.deviceId as string;
 
-    if (token != '123') {
-      client.disconnect(true);
-      return;
+    const isAuthorized = this.toiletsService.verifyDeviceConnection({
+      token,
+      toiletId,
+      deviceId,
+    });
+
+    if (!isAuthorized) {
+      socket.disconnect();
     }
 
-    console.log('Connected');
+    socket.isAuthorized = true;
   }
 
-  handleDisconnect(client: any) {
-    console.log('Disconnected');
-  }
-
-  afterInit(server: any) {
-    console.log('Init');
+  handleDisconnect(@ConnectedSocket() socket: AuthSocket): void {
+    socket.isAuthorized = false;
   }
 }
