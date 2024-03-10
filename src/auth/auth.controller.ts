@@ -7,13 +7,15 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { OrGuard } from '@nest-lab/or-guard';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignInDto, SignUpDto } from './dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { ApiTags } from '@nestjs/swagger';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import { Request } from 'express';
 import { User } from 'src/common/decorators';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -37,7 +39,7 @@ export class AuthController {
     return this.authService.signOut(request);
   }
 
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(OrGuard([AuthenticatedGuard, JwtAuthGuard]))
   @Get('profile')
   getProfile(@User() user) {
     return user;

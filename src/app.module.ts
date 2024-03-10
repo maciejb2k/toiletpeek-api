@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ToiletsModule } from './toilets/toilets.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    ToiletsModule,
   ],
   controllers: [],
   providers: [],

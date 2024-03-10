@@ -10,6 +10,9 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { ConfigService } from '@nestjs/config';
 import { SessionSerializer } from './serializers/session.serializer';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthenticatedGuard } from './guards/authenticated.guard';
 
 @Module({
   imports: [
@@ -19,13 +22,21 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       useFactory: (config: ConfigService) => {
         return {
           secret: config.get<string>('JWT_SECRET'),
-          signOptions: { expiresIn: '60s' },
+          signOptions: { expiresIn: '1h' },
         };
       },
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy, SessionSerializer],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    SessionSerializer,
+    AuthenticatedGuard,
+    JwtAuthGuard,
+    LocalAuthGuard,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}
