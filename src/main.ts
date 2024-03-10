@@ -14,6 +14,9 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
+  // Enable CORS
+  app.enableCors();
+
   // Get the ConfigService
   const configService = app.get(ConfigService);
 
