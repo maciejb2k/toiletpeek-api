@@ -13,7 +13,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import { Request } from 'express';
-import { User } from 'src/users/user.entity';
+import { User } from 'src/common/decorators';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -27,8 +27,8 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
-  async signIn(@Req() request: Request, @Body() signInDto: SignInDto) {
-    return this.authService.signIn(request.user as User);
+  async signIn(@User() user, @Body() signInDto: SignInDto) {
+    return this.authService.signIn(user);
   }
 
   @UseGuards(AuthenticatedGuard)
@@ -39,7 +39,7 @@ export class AuthController {
 
   @UseGuards(AuthenticatedGuard)
   @Get('profile')
-  getProfile(@Req() req) {
-    return req.user;
+  getProfile(@User() user) {
+    return user;
   }
 }
