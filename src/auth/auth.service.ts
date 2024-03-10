@@ -1,5 +1,7 @@
 import {
+  HttpStatus,
   Injectable,
+  Req,
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -9,6 +11,7 @@ import { User } from 'src/users/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto';
 import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -16,15 +19,6 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
-
-  async signIn(user: User): Promise<any> {
-    const payload = { email: user.email, sub: user.id };
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      accessToken,
-    };
-  }
 
   async signUp(signUpDto: SignUpDto): Promise<User> {
     const { email, password } = signUpDto;
@@ -45,6 +39,36 @@ export class AuthService {
     });
 
     return user;
+  }
+
+  async signIn(@Req() request: Request): Promise<any> {
+    const user: any = request.user;
+    const payload = { email: user.email, sub: user.id };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      message: 'Login successful',
+      statusCode: HttpStatus.OK,
+      accessToken,
+    };
+  }
+
+  async signInJwt(user: User): Promise<any> {
+    const payload = { email: user.email, sub: user.id };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
+    };
+  }
+
+  async signOut(@Req() request: Request): Promise<any> {
+    request.session.destroy(() => {
+      return {
+        message: 'Logout successful',
+        statusCode: HttpStatus.OK,
+      };
+    });
   }
 
   async validateUser(email: string, password: string): Promise<User> {

@@ -8,35 +8,35 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Request } from 'express';
-import { SignInDto, SignUpDto } from './dto';
+import { SignUpDto } from './dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
-import { User } from 'src/users/user.entity';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthenticatedGuard } from './guards/authenticated.guard';
+import { Request } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
-  @Post('sign-in')
-  async signIn(@Req() { user }: { user: User }) {
-    return this.authService.signIn(user);
-  }
-
   @Post('sign-up')
   async signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto);
   }
 
-  @Delete('sign-out')
-  async signOut() {
-    return 'Sign out successful!';
+  @UseGuards(LocalAuthGuard)
+  @Post('sign-in')
+  async signIn(@Req() request: Request) {
+    return this.authService.signIn(request);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthenticatedGuard)
+  @Delete('sign-out')
+  async signOut(@Req() request: Request) {
+    return this.authService.signOut(request);
+  }
+
+  @UseGuards(AuthenticatedGuard)
   @Get('profile')
   getProfile(@Req() req) {
     return req.user;
