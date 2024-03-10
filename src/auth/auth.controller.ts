@@ -8,11 +8,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignUpDto } from './dto';
+import { SignInDto, SignUpDto } from './dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import { Request } from 'express';
+import { User } from 'src/users/user.entity';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -26,8 +27,8 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
-  async signIn(@Req() request: Request) {
-    return this.authService.signIn(request);
+  async signIn(@Req() request: Request, @Body() signInDto: SignInDto) {
+    return this.authService.signIn(request.user as User);
   }
 
   @UseGuards(AuthenticatedGuard)

@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
@@ -36,7 +35,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [],
 })
 export class AppModule {}
