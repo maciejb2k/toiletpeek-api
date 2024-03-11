@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   CallHandler,
   ExecutionContext,
   Injectable,
@@ -7,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Observable, catchError } from 'rxjs';
-import { EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { EntityNotFoundError } from 'typeorm';
 
 @Injectable()
 export class NotFoundInterceptor implements NestInterceptor {

@@ -10,7 +10,7 @@ import {
 import { OrGuard } from '@nest-lab/or-guard';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { SignInDto, SignUpDto } from './dto';
+import { SignUpDto } from './dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthenticatedGuard } from './guards/authenticated.guard';
 import { Request } from 'express';
@@ -29,7 +29,7 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
-  async signIn(@User() user, @Body() signInDto: SignInDto) {
+  async signIn(@User() user) {
     return this.authService.signIn(user);
   }
 

@@ -15,9 +15,13 @@ export class ToiletsGateway
   constructor(private readonly toiletsService: ToiletsService) {}
 
   @SubscribeMessage('sensors_data')
-  handleSensorsData(@ConnectedSocket() socket: AuthSocket, payload: any) {}
+  handleSensorsData(@ConnectedSocket() socket: AuthSocket, payload: any) {
+    console.log(socket, payload);
+  }
 
   handleConnection(@ConnectedSocket() socket: AuthSocket): void {
+    console.log('connected');
+
     const token = socket.handshake.headers.token as string;
     const toiletId = socket.handshake.headers.toiletId as string;
     const deviceId = socket.handshake.headers.deviceId as string;
@@ -36,6 +40,7 @@ export class ToiletsGateway
   }
 
   handleDisconnect(@ConnectedSocket() socket: AuthSocket): void {
+    console.log('disconnected');
     socket.isAuthorized = false;
   }
 }
