@@ -7,12 +7,16 @@ import * as passport from 'passport';
 import { AppModule } from './app.module';
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NotFoundInterceptor } from './common/interceptors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     snapshot: true,
     bufferLogs: true,
   });
+
+  // Interceptors
+  app.useGlobalInterceptors(new NotFoundInterceptor());
 
   // Enable CORS
   app.enableCors();
@@ -24,6 +28,8 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      whitelist: true,
+      forbidUnknownValues: true,
     }),
   );
 

@@ -1,5 +1,6 @@
 import { BaseEntity } from 'src/common/entities';
-import { Column, Entity, Index } from 'typeorm';
+import { Toilet } from 'src/toilets/entities/toilet.entity';
+import { Column, Entity, Index, OneToMany } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -15,4 +16,7 @@ export class User extends BaseEntity {
 
   @Column()
   password: string;
+
+  @OneToMany(() => Toilet, (toilet) => toilet.user)
+  toilets: Toilet[];
 }
