@@ -5,6 +5,8 @@ import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ToiletsModule } from './toilets/toilets.module';
+import { RestroomsModule } from './restrooms/restrooms.module';
+import { OrganizationsModule } from './organizations/organizations.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { ToiletsModule } from './toilets/toilets.module';
     UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ToiletsModule,
+    RestroomsModule,
+    OrganizationsModule,
   ],
   controllers: [],
   providers: [],

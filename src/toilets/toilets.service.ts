@@ -17,7 +17,6 @@ export class ToiletsService {
   async create(user: User, createToiletDto: CreateToiletDto) {
     return await this.toiletRepository.insert({
       ...createToiletDto,
-      user,
     });
   }
 
@@ -25,7 +24,9 @@ export class ToiletsService {
     const queryBuilder = this.toiletRepository.createQueryBuilder('toilet');
 
     queryBuilder
-      .leftJoinAndSelect('toilet.user', 'user')
+      .leftJoinAndSelect('toilet.restroom', 'restroom')
+      .leftJoinAndSelect('restroom.organization', 'organization')
+      .leftJoinAndSelect('organization.user', 'user')
       .where('user.id = :id', { id: user.id });
 
     return await queryBuilder.getMany();
@@ -43,11 +44,11 @@ export class ToiletsService {
   }
 
   async update(user: User, id: string, updateToiletDto: UpdateToiletDto) {
-    return await this.toiletRepository.update({ id, user }, updateToiletDto);
+    return await this.toiletRepository.save({ id, user, ...updateToiletDto });
   }
 
   async remove(user: User, id: string) {
-    return await this.toiletRepository.delete({ id, user });
+    return await this.toiletRepository.delete({ id });
   }
 
   verifyDeviceConnection(data: DeviceConnectionDto) {
