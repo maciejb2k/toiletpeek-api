@@ -13,6 +13,9 @@ export class Toilet extends BaseEntity {
   @Column({ default: false })
   isOccupied: boolean;
 
+  @Column()
+  token: string;
+
   @ManyToOne(() => Restroom, (restroom) => restroom.toilets)
   restroom: Restroom;
 }

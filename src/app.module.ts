@@ -7,24 +7,15 @@ import { UsersModule } from './users/users.module';
 import { ToiletsModule } from './toilets/toilets.module';
 import { RestroomsModule } from './restrooms/restrooms.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import typeorm from './database/typeorm';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true, load: [typeorm] }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('POSTGRES_HOST'),
-        port: +configService.get<string>('POSTGRES_PORT'),
-        username: configService.get<string>('POSTGRES_USERNAME'),
-        password: configService.get<string>('POSTGRES_PASSWORD'),
-        database: configService.get<string>('POSTGRES_DATABASE'),
-        synchronize:
-          configService.get<string>('NODE_ENV') === 'production' ? false : true,
-        autoLoadEntities: true,
-        logging: true,
-      }),
+      useFactory: async (configService: ConfigService) =>
+        configService.get('typeorm'),
       inject: [ConfigService],
     }),
     LoggerModule.forRoot({
@@ -36,7 +27,6 @@ import { OrganizationsModule } from './organizations/organizations.module';
     }),
     AuthModule,
     UsersModule,
-    ConfigModule.forRoot({ isGlobal: true }),
     ToiletsModule,
     RestroomsModule,
     OrganizationsModule,

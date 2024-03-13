@@ -5,4 +5,11 @@ export class CreateToiletDto {
   @ApiProperty()
   @IsNotEmpty()
   name: string;
+
+  @ApiProperty()
+  description: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  token: string;
 }

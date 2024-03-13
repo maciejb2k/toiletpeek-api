@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { RestroomsService } from './restrooms.service';
 import { CreateRestroomDto } from './dto/create-restroom.dto';
@@ -27,14 +28,14 @@ export class RestroomsController {
   constructor(private readonly restroomsService: RestroomsService) {}
 
   @Get()
-  findAll(@User() user: UserEntity, params: RestroomParams) {
+  findAll(@User() user: UserEntity, @Query() params: RestroomParams) {
     return this.restroomsService.findAll(user, params);
   }
 
   @Get(':id')
   findOne(
     @User() user: UserEntity,
-    params: RestroomParams,
+    @Query() params: RestroomParams,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.restroomsService.findOne(user, params, id);
@@ -43,7 +44,7 @@ export class RestroomsController {
   @Post()
   create(
     @User() user: UserEntity,
-    params: RestroomParams,
+    @Query() params: RestroomParams,
     @Body() createRestroomDto: CreateRestroomDto,
   ) {
     return this.restroomsService.create(user, params, createRestroomDto);
@@ -53,7 +54,7 @@ export class RestroomsController {
   update(
     @User() user: UserEntity,
     @Param('id', ParseUUIDPipe) id: string,
-    params: RestroomParams,
+    @Query() params: RestroomParams,
     @Body() updateRestroomDto: UpdateRestroomDto,
   ) {
     return this.restroomsService.update(user, params, id, updateRestroomDto);
@@ -62,7 +63,7 @@ export class RestroomsController {
   @Delete(':id')
   remove(
     @User() user: UserEntity,
-    params: RestroomParams,
+    @Query() params: RestroomParams,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.restroomsService.remove(user, params, id);

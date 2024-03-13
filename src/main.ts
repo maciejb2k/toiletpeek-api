@@ -27,7 +27,7 @@ async function bootstrap() {
   // Enable auto-validation
   app.useGlobalPipes(
     new ValidationPipe({
-      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      errorHttpStatusCode: HttpStatus.BAD_REQUEST,
       whitelist: true,
       forbidUnknownValues: true,
     }),
