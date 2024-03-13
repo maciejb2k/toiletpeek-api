@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateToiletDto } from './dto/create-toilet.dto';
 import { UpdateToiletDto } from './dto/update-toilet.dto';
 import { DeviceConnectionDto } from './dto/device-connection.dto';
@@ -6,55 +6,114 @@ import { Repository } from 'typeorm';
 import { Toilet } from './entities/toilet.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/user.entity';
+import { ToiletParams } from './dto/toilet.params';
+import { Restroom } from 'src/restrooms/entities/restroom.entity';
 
 @Injectable()
 export class ToiletsService {
   constructor(
     @InjectRepository(Toilet)
     private readonly toiletRepository: Repository<Toilet>,
+    @InjectRepository(Restroom)
+    private readonly restroomRepository: Repository<Restroom>,
   ) {}
 
-  async create(user: User, createToiletDto: CreateToiletDto) {
-    return await this.toiletRepository.insert({
-      ...createToiletDto,
-    });
+  async create(
+    user: User,
+    params: ToiletParams,
+    createToiletDto: CreateToiletDto,
+  ) {
+    const restroom = await this.findRestroom(user, params);
+
+    const toilet = this.toiletRepository
+      .createQueryBuilder('toilet')
+      .insert()
+      .into(Toilet)
+      .values({
+        ...createToiletDto,
+        restroom,
+      })
+      .execute();
+
+    return toilet;
   }
 
-  async findAll(user: User) {
-    const queryBuilder = this.toiletRepository.createQueryBuilder('toilet');
+  async findAll(user: User, params: ToiletParams) {
+    const restroom = await this.findRestroom(user, params);
 
-    queryBuilder
-      .leftJoinAndSelect('toilet.restroom', 'restroom')
-      .leftJoinAndSelect('restroom.organization', 'organization')
-      .leftJoinAndSelect('organization.user', 'user')
-      .where('user.id = :id', { id: user.id });
-
-    return await queryBuilder.getMany();
+    return await this.toiletRepository
+      .createQueryBuilder('toilet')
+      .andWhere('toilet.restroomId = :restroomId', { restroomId: restroom.id })
+      .getMany();
   }
 
-  async findOne(user: User, id: string) {
-    const queryBuilder = this.toiletRepository.createQueryBuilder('toilet');
+  async findOne(user: User, params: ToiletParams, id: string) {
+    const restroom = await this.findRestroom(user, params);
 
-    queryBuilder
-      .leftJoinAndSelect('toilet.user', 'user')
+    return await this.toiletRepository
+      .createQueryBuilder('toilet')
       .where('toilet.id = :id', { id })
-      .andWhere('user.id = :userId', { userId: user.id });
-
-    return await queryBuilder.getOneOrFail();
+      .andWhere('toilet.restroomId = :restroomId', { restroomId: restroom.id })
+      .getOneOrFail();
   }
 
-  async update(user: User, id: string, updateToiletDto: UpdateToiletDto) {
-    return await this.toiletRepository.save({ id, user, ...updateToiletDto });
+  async update(
+    user: User,
+    params: ToiletParams,
+    id: string,
+    updateToiletDto: UpdateToiletDto,
+  ) {
+    const { restroomId } = params;
+    await this.findRestroom(user, params);
+
+    return await this.toiletRepository
+      .createQueryBuilder('toilets')
+      .update()
+      .set(updateToiletDto)
+      .where('id = :id', { id })
+      .andWhere('restroom.id = :restroomId', {
+        restroomId,
+      })
+      .execute();
   }
 
-  async remove(user: User, id: string) {
-    return await this.toiletRepository.delete({ id });
+  async remove(user: User, params: ToiletParams, id: string) {
+    const { restroomId } = params;
+    await this.findRestroom(user, params);
+
+    return await this.toiletRepository
+      .createQueryBuilder('toilets')
+      .delete()
+      .from(Toilet)
+      .where('id = :id', { id })
+      .andWhere('restroom.id = :restroomId', {
+        restroomId,
+      })
+      .execute();
   }
 
   verifyDeviceConnection(data: DeviceConnectionDto) {
     const { toiletId, deviceId, token } = data;
     console.log(toiletId, deviceId, token);
-
     return true;
+  }
+
+  private async findRestroom(user: User, params: ToiletParams) {
+    const { organizationId, restroomId } = params;
+
+    const restroom = await this.restroomRepository
+      .createQueryBuilder('restroom')
+      .leftJoinAndSelect('restroom.organization', 'organization')
+      .leftJoinAndSelect('organization.user', 'user')
+      .where('user.id = :id', { id: user.id })
+      .andWhere('organization.id = :organizationId', { organizationId })
+      .andWhere('restroom.id = :restroomId', { restroomId })
+      .getOneOrFail();
+
+    if (restroom.organization.user.id !== user.id) {
+      throw new UnauthorizedException();
+    }
+
+    return restroom;
   }
 }

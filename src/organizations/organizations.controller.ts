@@ -7,6 +7,7 @@ import {
   Delete,
   Param,
   ParseUUIDPipe,
+  Patch,
 } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
@@ -16,6 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { OrGuard } from '@nest-lab/or-guard';
 import { AuthenticatedGuard } from 'src/auth/guards/authenticated.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 @ApiTags('organizations')
 @UseGuards(OrGuard([AuthenticatedGuard, JwtAuthGuard]))
@@ -34,6 +36,20 @@ export class OrganizationsController {
   @Get()
   findAll(@User() user: UserEntity) {
     return this.organizationsService.findAll(user);
+  }
+
+  @Get(':id')
+  findOne(@User() user: UserEntity, @Param('id', ParseUUIDPipe) id: string) {
+    return this.organizationsService.findOne(user, id);
+  }
+
+  @Patch(':id')
+  update(
+    @User() user: UserEntity,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateOrganizationDto: UpdateOrganizationDto,
+  ) {
+    return this.organizationsService.update(user, id, updateOrganizationDto);
   }
 
   @Delete(':id')

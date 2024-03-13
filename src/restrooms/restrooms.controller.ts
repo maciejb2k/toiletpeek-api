@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
-  Query,
 } from '@nestjs/common';
 import { RestroomsService } from './restrooms.service';
 import { CreateRestroomDto } from './dto/create-restroom.dto';
@@ -19,6 +18,7 @@ import { AuthenticatedGuard } from 'src/auth/guards/authenticated.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { User as UserEntity } from 'src/users/user.entity';
 import { User } from 'src/common/decorators';
+import { RestroomParams } from './dto/restroom.params';
 
 @ApiTags('restrooms')
 @UseGuards(OrGuard([AuthenticatedGuard, JwtAuthGuard]))
@@ -27,56 +27,44 @@ export class RestroomsController {
   constructor(private readonly restroomsService: RestroomsService) {}
 
   @Get()
-  findAll(
-    @User() user: UserEntity,
-    @Query('organizationId', ParseUUIDPipe) organizationId: string,
-  ) {
-    return this.restroomsService.findAll(user, organizationId);
+  findAll(@User() user: UserEntity, params: RestroomParams) {
+    return this.restroomsService.findAll(user, params);
   }
 
   @Get(':id')
   findOne(
     @User() user: UserEntity,
-    @Query('organizationId', ParseUUIDPipe) organizationId: string,
+    params: RestroomParams,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.restroomsService.findOne(user, organizationId, id);
+    return this.restroomsService.findOne(user, params, id);
   }
 
   @Post()
   create(
     @User() user: UserEntity,
-    @Query('organizationId', ParseUUIDPipe) organizationId: string,
+    params: RestroomParams,
     @Body() createRestroomDto: CreateRestroomDto,
   ) {
-    return this.restroomsService.create(
-      user,
-      organizationId,
-      createRestroomDto,
-    );
+    return this.restroomsService.create(user, params, createRestroomDto);
   }
 
   @Patch(':id')
   update(
     @User() user: UserEntity,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('organizationId', ParseUUIDPipe) organizationId: string,
+    params: RestroomParams,
     @Body() updateRestroomDto: UpdateRestroomDto,
   ) {
-    return this.restroomsService.update(
-      user,
-      id,
-      organizationId,
-      updateRestroomDto,
-    );
+    return this.restroomsService.update(user, params, id, updateRestroomDto);
   }
 
   @Delete(':id')
   remove(
     @User() user: UserEntity,
-    @Query('organizationId', ParseUUIDPipe) organizationId: string,
+    params: RestroomParams,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.restroomsService.remove(user, organizationId, id);
+    return this.restroomsService.remove(user, params, id);
   }
 }

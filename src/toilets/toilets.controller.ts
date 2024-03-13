@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { ToiletsService } from './toilets.service';
 import { CreateToiletDto } from './dto/create-toilet.dto';
@@ -18,6 +19,7 @@ import { AuthenticatedGuard } from 'src/auth/guards/authenticated.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { User } from 'src/common/decorators';
 import { User as UserEntity } from 'src/users/user.entity';
+import { ToiletParams } from './dto/toilet.params';
 
 @ApiTags('toilets')
 @UseGuards(OrGuard([AuthenticatedGuard, JwtAuthGuard]))
@@ -26,31 +28,44 @@ export class ToiletsController {
   constructor(private readonly toiletsService: ToiletsService) {}
 
   @Get()
-  findAll(@User() user: UserEntity) {
-    return this.toiletsService.findAll(user);
+  findAll(@User() user: UserEntity, @Query() params: ToiletParams) {
+    return this.toiletsService.findAll(user, params);
   }
 
   @Get(':id')
-  findOne(@User() user: UserEntity, @Param('id', ParseUUIDPipe) id: string) {
-    return this.toiletsService.findOne(user, id);
+  findOne(
+    @User() user: UserEntity,
+    @Query() params: ToiletParams,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.toiletsService.findOne(user, params, id);
   }
 
   @Post()
-  create(@User() user: UserEntity, @Body() createToiletDto: CreateToiletDto) {
-    return this.toiletsService.create(user, createToiletDto);
+  create(
+    @User() user: UserEntity,
+    @Query() params: ToiletParams,
+    @Body() createToiletDto: CreateToiletDto,
+  ) {
+    return this.toiletsService.create(user, params, createToiletDto);
   }
 
   @Patch(':id')
   update(
     @User() user: UserEntity,
+    @Query() params: ToiletParams,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateToiletDto: UpdateToiletDto,
   ) {
-    return this.toiletsService.update(user, id, updateToiletDto);
+    return this.toiletsService.update(user, params, id, updateToiletDto);
   }
 
   @Delete(':id')
-  remove(@User() user: UserEntity, @Param('id', ParseUUIDPipe) id: string) {
-    return this.toiletsService.remove(user, id);
+  remove(
+    @User() user: UserEntity,
+    @Query() params: ToiletParams,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.toiletsService.remove(user, params, id);
   }
 }
