@@ -5,8 +5,5 @@ export class DeviceConnectionDto {
   toiletId: string;
 
   @IsNotEmpty()
-  deviceId: string;
-
-  @IsNotEmpty()
   token: string;
 }

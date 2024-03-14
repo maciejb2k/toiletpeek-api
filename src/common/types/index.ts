@@ -1,3 +1,3 @@
 import { Socket } from 'socket.io';
 
-export type AuthSocket = Socket & { isAuthorized: boolean };
+export type AuthSocket = Socket & { isAuthorized: boolean; toiletId: string };

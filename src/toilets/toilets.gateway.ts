@@ -7,8 +7,9 @@ import {
 } from '@nestjs/websockets';
 import { ToiletsService } from './toilets.service';
 import { AuthSocket } from 'src/common/types';
+import { decodeBase64 } from 'src/common/utils';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, namespace: 'toilets' })
 export class ToiletsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -21,26 +22,38 @@ export class ToiletsGateway
 
   handleConnection(@ConnectedSocket() socket: AuthSocket): void {
     console.log('connected');
+    console.log(socket.handshake.headers);
 
-    const token = socket.handshake.headers.token as string;
-    const toiletId = socket.handshake.headers.toiletId as string;
-    const deviceId = socket.handshake.headers.deviceId as string;
+    const encodedPayload = socket.handshake.headers.authorization.split(
+      ' ',
+    )[1] as string;
+
+    if (!encodedPayload) {
+      socket.disconnect();
+      return;
+    }
+
+    const [toiletId, token] = decodeBase64(encodedPayload);
 
     const isAuthorized = this.toiletsService.verifyDeviceConnection({
-      token,
       toiletId,
-      deviceId,
+      token,
     });
 
     if (!isAuthorized) {
       socket.disconnect();
+      return;
     }
 
+    console.log('Successfully connected and authorized to the server!');
+
     socket.isAuthorized = true;
+    socket.toiletId = toiletId;
   }
 
   handleDisconnect(@ConnectedSocket() socket: AuthSocket): void {
+    delete socket.isAuthorized;
+    delete socket.toiletId;
     console.log('disconnected');
-    socket.isAuthorized = false;
   }
 }

@@ -93,8 +93,8 @@ export class ToiletsService {
   }
 
   verifyDeviceConnection(data: DeviceConnectionDto) {
-    const { toiletId, deviceId, token } = data;
-    console.log(toiletId, deviceId, token);
+    const { toiletId, token } = data;
+    console.log(toiletId, token);
     return true;
   }
 

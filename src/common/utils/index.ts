@@ -5,3 +5,7 @@ export const isObjectEmpty = (objectName) => {
     objectName.constructor === Object
   );
 };
+
+export const decodeBase64 = (basicAuth: string) => {
+  return Buffer.from(basicAuth, 'base64').toString().split(':');
+};
