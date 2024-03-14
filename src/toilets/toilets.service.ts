@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/user.entity';
 import { ToiletParams } from './dto/toilet.params';
 import { Restroom } from 'src/restrooms/entities/restroom.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ToiletsService {
@@ -25,12 +26,15 @@ export class ToiletsService {
   ) {
     const restroom = await this.findRestroom(user, params);
 
+    const token = await bcrypt.hash(createToiletDto.token, 10);
+
     const toilet = this.toiletRepository
       .createQueryBuilder('toilet')
       .insert()
       .into(Toilet)
       .values({
         ...createToiletDto,
+        token,
         restroom,
       })
       .execute();
@@ -92,9 +96,20 @@ export class ToiletsService {
       .execute();
   }
 
-  verifyDeviceConnection(data: DeviceConnectionDto) {
+  async verifyDeviceConnection(data: DeviceConnectionDto) {
     const { toiletId, token } = data;
-    console.log(toiletId, token);
+
+    const toilet = await this.toiletRepository
+      .createQueryBuilder('toilet')
+      .where('toilet.id = :toiletId', { toiletId })
+      .getOne();
+
+    if (!toilet) return false;
+
+    const isTokenValid = await bcrypt.compare(token, toilet.token);
+
+    if (!isTokenValid) return false;
+
     return true;
   }
 
