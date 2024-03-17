@@ -7,7 +7,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { DevicesService } from './devices.service';
-import { decodeBase64 } from 'src/common/utils';
+import { decodeBase64, extractToken } from 'src/common/utils';
 import { UseGuards } from '@nestjs/common';
 import { DeviceWsGuard } from './guards/device-ws.guard';
 import { DeviceSocket } from './types';
@@ -37,7 +37,7 @@ export class DevicesGateway
 
     try {
       const header = socket.handshake.headers.authorization;
-      const encodedPayload = header.split(' ')[1] as string;
+      const encodedPayload = extractToken(header);
       const [toiletId, token] = decodeBase64(encodedPayload);
 
       await this.devicesService.verifyDevice({

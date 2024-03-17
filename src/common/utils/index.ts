@@ -9,3 +9,7 @@ export const isObjectEmpty = (objectName) => {
 export const decodeBase64 = (basicAuth: string) => {
   return Buffer.from(basicAuth, 'base64').toString().split(':');
 };
+
+export const extractToken = (authHeader: string) => {
+  return authHeader.split(' ')[1] as string;
+};

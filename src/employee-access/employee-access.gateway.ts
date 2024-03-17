@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { EmployeeAccessJWT, EmployeeAccessSocket } from './types';
+import { extractToken } from 'src/common/utils';
 
 @WebSocketGateway({ cors: true, namespace: 'employee-access' })
 export class EmployeeAccessGateway
@@ -21,7 +22,7 @@ export class EmployeeAccessGateway
   handleConnection(@ConnectedSocket() socket: EmployeeAccessSocket) {
     try {
       const header = socket.handshake.headers.authorization;
-      const token = header.split(' ')[1] as string;
+      const token = extractToken(header);
       const organization: EmployeeAccessJWT = this.jwtService.verify(token);
 
       socket.isEmployeeAuthorized = true;
