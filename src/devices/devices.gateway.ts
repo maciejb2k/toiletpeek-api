@@ -5,28 +5,53 @@ import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { DevicesService } from './devices.service';
 import { decodeBase64, extractToken } from 'src/common/utils';
 import { UseGuards } from '@nestjs/common';
 import { DeviceWsGuard } from './guards/device-ws.guard';
-import { DeviceSocket } from './types';
+import { DeviceSocket, SensorsData } from './types';
+import { Server } from 'socket.io';
+import { ToiletsService } from 'src/toilets/toilets.service';
 
 @WebSocketGateway({ cors: true })
 export class DevicesGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly devicesService: DevicesService) {}
+  @WebSocketServer()
+  server: Server;
+
+  constructor(
+    private readonly devicesService: DevicesService,
+    private toiletsService: ToiletsService,
+  ) {}
 
   @UseGuards(DeviceWsGuard)
   @SubscribeMessage('sensors_data')
-  handleSensorsData(
+  async handleSensorsData(
     @ConnectedSocket() socket: DeviceSocket,
-    @MessageBody() data: string,
+    @MessageBody() data: SensorsData,
   ) {
     console.log('\nEvent type: sensors_data');
     console.log('Toilet ID:', socket.toiletId);
     console.log('Payload:', data);
+
+    const isOccupied = await this.devicesService.determineToiletOccupancy(data);
+
+    await this.devicesService.updateSensorsData(socket.toiletId, isOccupied);
+
+    const payload = {
+      toiletId: socket.toiletId,
+      isOccupied,
+    };
+
+    console.log('Emitting to organization:', socket.organizationId);
+
+    this.server
+      .of('/employee-access')
+      .to(socket.organizationId)
+      .emit('toilet_occupancy', payload);
   }
 
   async handleConnection(
@@ -45,6 +70,10 @@ export class DevicesGateway
         token,
       });
 
+      const organizationId =
+        await this.toiletsService.getOrganizationId(toiletId);
+
+      socket.organizationId = organizationId;
       socket.isDeviceAuthorized = true;
       socket.toiletId = toiletId;
 

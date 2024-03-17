@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { DevicesGateway } from './devices.gateway';
 import { DevicesService } from './devices.service';
-import { Toilet } from 'src/toilets/entities/toilet.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DeviceWsGuard } from './guards/device-ws.guard';
+import { ToiletsModule } from 'src/toilets/toilets.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Toilet])],
+  imports: [ToiletsModule],
   providers: [DevicesGateway, DevicesService, DeviceWsGuard],
 })
 export class DevicesModule {}

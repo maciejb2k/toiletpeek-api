@@ -60,6 +60,24 @@ export class ToiletsService {
       .getOneOrFail();
   }
 
+  async findFromDevice(toiletId: string) {
+    return await this.toiletRepository
+      .createQueryBuilder('toilet')
+      .where('toilet.id = :id', { id: toiletId })
+      .getOneOrFail();
+  }
+
+  async getOrganizationId(toiletId: string) {
+    const toilet = await this.toiletRepository
+      .createQueryBuilder('toilet')
+      .leftJoinAndSelect('toilet.restroom', 'restroom')
+      .leftJoinAndSelect('restroom.organization', 'organization')
+      .where('toilet.id = :id', { id: toiletId })
+      .getOneOrFail();
+
+    return toilet.restroom.organization.id;
+  }
+
   async update(
     user: User,
     params: ToiletParams,
@@ -77,6 +95,15 @@ export class ToiletsService {
       .andWhere('restroom.id = :restroomId', {
         restroomId,
       })
+      .execute();
+  }
+
+  async updateOccupancy(toiletId: string, isOccupied: boolean) {
+    return await this.toiletRepository
+      .createQueryBuilder('toilets')
+      .update()
+      .set({ isOccupied })
+      .where('id = :id', { id: toiletId })
       .execute();
   }
 

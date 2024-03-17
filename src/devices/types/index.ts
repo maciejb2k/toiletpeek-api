@@ -5,3 +5,9 @@ export type DeviceSocket = Socket & {
   toiletId: string;
   organizationId: string;
 };
+
+export type SensorsData = {
+  isDoorOpen: boolean;
+  isLightOn?: boolean;
+  isMotionDetected?: boolean;
+};

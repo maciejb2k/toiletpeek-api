@@ -9,5 +9,6 @@ import { Restroom } from 'src/restrooms/entities/restroom.entity';
   imports: [TypeOrmModule.forFeature([Toilet, Restroom])],
   controllers: [ToiletsController],
   providers: [ToiletsService],
+  exports: [ToiletsService],
 })
 export class ToiletsModule {}
