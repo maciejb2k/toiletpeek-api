@@ -1,12 +1,21 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { LocalEmployeeAuthGuard } from './guards/local-employee-auth.guard';
-import { User as Organization } from 'src/common/decorators';
+import { User as Token, User as Organization } from 'src/common/decorators';
 import { EmployeeAccessService } from './employee-access.service';
-import { Organization as OrganizationEntity } from 'src/organizations/entities/organization.entity';
 import { JwtEmployeeAuthGuard } from './guards/jwt-employee-auth.guard';
+import { EmployeeAccessJWT } from './types';
+import { Organization as OrganizationEntity } from 'src/organizations/entities/organization.entity';
 
 @ApiTags('employee-access')
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('employee-access')
 export class EmployeeAccessController {
   constructor(private employeeAccessService: EmployeeAccessService) {}
@@ -19,7 +28,7 @@ export class EmployeeAccessController {
 
   @UseGuards(JwtEmployeeAuthGuard)
   @Get()
-  async findRestrooms() {
-    return 'Restrooms';
+  async findRestrooms(@Token() token: EmployeeAccessJWT) {
+    return await this.employeeAccessService.getRestrooms(token);
   }
 }

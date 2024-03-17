@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { BaseEntity } from 'src/common/entities';
 import { Restroom } from 'src/restrooms/entities/restroom.entity';
 import { User } from 'src/users/user.entity';
@@ -18,6 +19,7 @@ export class Organization extends BaseEntity {
   address: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @OneToMany(() => Restroom, (restroom) => restroom.organization)
@@ -25,4 +27,9 @@ export class Organization extends BaseEntity {
 
   @ManyToOne(() => User, (user) => user.organizations)
   user: User;
+
+  constructor(partial: Partial<Organization>) {
+    super();
+    Object.assign(this, partial);
+  }
 }

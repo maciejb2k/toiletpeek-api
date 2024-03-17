@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from 'src/organizations/entities/organization.entity';
 import { Repository } from 'typeorm';
+import { EmployeeAccessJWT } from './types';
 
 @Injectable()
 export class EmployeeAccessService {
@@ -31,6 +32,19 @@ export class EmployeeAccessService {
     if (!organization) {
       throw new BadRequestException('Invalid credentials');
     }
+
+    return organization;
+  }
+
+  async getRestrooms(token: EmployeeAccessJWT) {
+    const organization = await this.organizationRepository
+      .createQueryBuilder('organizations')
+      .where('organizations.id = :organizationId', {
+        organizationId: token.sub,
+      })
+      .leftJoinAndSelect('organizations.restrooms', 'restrooms')
+      .leftJoinAndSelect('restrooms.toilets', 'toilets')
+      .getOne();
 
     return organization;
   }

@@ -33,4 +33,9 @@ export class Restroom extends BaseEntity {
 
   @ManyToOne(() => Organization, (organization) => organization.restrooms)
   organization: Organization;
+
+  constructor(partial: Partial<Restroom>) {
+    super();
+    Object.assign(this, partial);
+  }
 }
