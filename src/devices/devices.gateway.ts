@@ -6,25 +6,26 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { ToiletsService } from './toilets.service';
+import { DevicesService } from './devices.service';
 import { AuthSocket } from 'src/common/types';
 import { decodeBase64 } from 'src/common/utils';
 import { UseGuards } from '@nestjs/common';
-import { WsToiletGuard } from './guards/ws-toilet.guard';
+import { DeviceAuthGuard } from './guards/device-auth.guard';
 
 @WebSocketGateway({ cors: true })
-export class ToiletsGateway
+export class DevicesGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly toiletsService: ToiletsService) {}
+  constructor(private readonly devicesService: DevicesService) {}
 
-  @UseGuards(WsToiletGuard)
+  @UseGuards(DeviceAuthGuard)
   @SubscribeMessage('sensors_data')
   handleSensorsData(
     @ConnectedSocket() socket: AuthSocket,
     @MessageBody() data: string,
   ) {
     console.log('\nEvent type: sensors_data');
+    console.log('Toilet ID:', socket.toiletId);
     console.log('Payload:', data);
   }
 
@@ -42,7 +43,7 @@ export class ToiletsGateway
     }
 
     const [toiletId, token] = decodeBase64(encodedPayload);
-    const isAuthorized = await this.toiletsService.verifyDeviceConnection({
+    const isAuthorized = await this.devicesService.verifyDevice({
       toiletId,
       token,
     });
@@ -53,6 +54,7 @@ export class ToiletsGateway
     }
 
     console.log('Successfully connected and authorized to the server!');
+
     socket.isAuthorized = true;
     socket.toiletId = toiletId;
   }

@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateToiletDto } from './dto/create-toilet.dto';
 import { UpdateToiletDto } from './dto/update-toilet.dto';
-import { DeviceConnectionDto } from './dto/device-connection.dto';
 import { Repository } from 'typeorm';
 import { Toilet } from './entities/toilet.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -94,23 +93,6 @@ export class ToiletsService {
         restroomId,
       })
       .execute();
-  }
-
-  async verifyDeviceConnection(data: DeviceConnectionDto) {
-    const { toiletId, token } = data;
-
-    const toilet = await this.toiletRepository
-      .createQueryBuilder('toilet')
-      .where('toilet.id = :toiletId', { toiletId })
-      .getOne();
-
-    if (!toilet) return false;
-
-    const isTokenValid = await bcrypt.compare(token, toilet.token);
-
-    if (!isTokenValid) return false;
-
-    return true;
   }
 
   private async findRestroom(user: User, params: ToiletParams) {

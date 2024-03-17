@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { ToiletsModule } from './toilets/toilets.module';
 import { RestroomsModule } from './restrooms/restrooms.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { EmployeeAccessModule } from './employee-access/employee-access.module';
+import { DevicesModule } from './devices/devices.module';
 import typeorm from './database/typeorm';
 
 @Module({
@@ -30,6 +32,8 @@ import typeorm from './database/typeorm';
     ToiletsModule,
     RestroomsModule,
     OrganizationsModule,
+    EmployeeAccessModule,
+    DevicesModule,
   ],
   controllers: [],
   providers: [],
