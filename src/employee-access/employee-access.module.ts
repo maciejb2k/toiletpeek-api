@@ -10,6 +10,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtEmployeeStrategy } from './strategies/jwt-employee.strategy';
 import { JwtEmployeeAuthGuard } from './guards/jwt-employee-auth.guard';
+import { EmployeeAccessGateway } from './employee-access.gateway';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { JwtEmployeeAuthGuard } from './guards/jwt-employee-auth.guard';
     LocalEmployeeAuthGuard,
     JwtEmployeeStrategy,
     JwtEmployeeAuthGuard,
+    EmployeeAccessGateway,
   ],
   controllers: [EmployeeAccessController],
 })

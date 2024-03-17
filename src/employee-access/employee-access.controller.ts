@@ -28,7 +28,7 @@ export class EmployeeAccessController {
 
   @UseGuards(JwtEmployeeAuthGuard)
   @Get()
-  async findRestrooms(@Token() token: EmployeeAccessJWT) {
+  async getRestrooms(@Token() token: EmployeeAccessJWT) {
     return await this.employeeAccessService.getRestrooms(token);
   }
 }

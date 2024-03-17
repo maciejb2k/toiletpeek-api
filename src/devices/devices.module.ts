@@ -3,7 +3,7 @@ import { DevicesGateway } from './devices.gateway';
 import { DevicesService } from './devices.service';
 import { Toilet } from 'src/toilets/entities/toilet.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DeviceAuthGuard } from './guards/device-auth.guard';
+import { DeviceAuthGuard } from './guards/device-ws.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Toilet])],

@@ -7,10 +7,10 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { DevicesService } from './devices.service';
-import { AuthSocket } from 'src/common/types';
 import { decodeBase64 } from 'src/common/utils';
 import { UseGuards } from '@nestjs/common';
-import { DeviceAuthGuard } from './guards/device-auth.guard';
+import { DeviceWsGuard } from './guards/device-ws.guard';
+import { DeviceSocket } from './types';
 
 @WebSocketGateway({ cors: true })
 export class DevicesGateway
@@ -18,10 +18,10 @@ export class DevicesGateway
 {
   constructor(private readonly devicesService: DevicesService) {}
 
-  @UseGuards(DeviceAuthGuard)
+  @UseGuards(DeviceWsGuard)
   @SubscribeMessage('sensors_data')
   handleSensorsData(
-    @ConnectedSocket() socket: AuthSocket,
+    @ConnectedSocket() socket: DeviceSocket,
     @MessageBody() data: string,
   ) {
     console.log('\nEvent type: sensors_data');
@@ -29,38 +29,34 @@ export class DevicesGateway
     console.log('Payload:', data);
   }
 
-  async handleConnection(@ConnectedSocket() socket: AuthSocket): Promise<void> {
+  async handleConnection(
+    @ConnectedSocket() socket: DeviceSocket,
+  ): Promise<void> {
     console.log('connected');
     console.log(socket.handshake.headers);
 
-    const encodedPayload = socket.handshake.headers.authorization.split(
-      ' ',
-    )[1] as string;
+    try {
+      const header = socket.handshake.headers.authorization;
+      const encodedPayload = header.split(' ')[1] as string;
+      const [toiletId, token] = decodeBase64(encodedPayload);
 
-    if (!encodedPayload) {
+      await this.devicesService.verifyDevice({
+        toiletId,
+        token,
+      });
+
+      socket.isDeviceAuthorized = true;
+      socket.toiletId = toiletId;
+
+      console.log('Successfully connected and authorized to the server!');
+    } catch (error) {
+      console.log('Client unauthorized');
       socket.disconnect();
-      return;
     }
-
-    const [toiletId, token] = decodeBase64(encodedPayload);
-    const isAuthorized = await this.devicesService.verifyDevice({
-      toiletId,
-      token,
-    });
-
-    if (!isAuthorized) {
-      socket.disconnect();
-      return;
-    }
-
-    console.log('Successfully connected and authorized to the server!');
-
-    socket.isAuthorized = true;
-    socket.toiletId = toiletId;
   }
 
-  handleDisconnect(@ConnectedSocket() socket: AuthSocket): void {
-    delete socket.isAuthorized;
+  handleDisconnect(@ConnectedSocket() socket: DeviceSocket): void {
+    delete socket.isDeviceAuthorized;
     delete socket.toiletId;
     console.log('disconnected');
   }
