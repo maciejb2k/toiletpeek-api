@@ -27,6 +27,7 @@ async function bootstrap() {
   // Enable auto-validation
   app.useGlobalPipes(
     new ValidationPipe({
+      transform: true,
       errorHttpStatusCode: HttpStatus.BAD_REQUEST,
       whitelist: true,
       forbidUnknownValues: true,

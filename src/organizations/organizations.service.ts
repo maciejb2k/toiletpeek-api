@@ -6,6 +6,9 @@ import { Repository } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { isObjectEmpty } from 'src/common/utils';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+import { PageDto } from 'src/common/dto/page.dto';
 
 @Injectable()
 export class OrganizationsService {
@@ -25,12 +28,29 @@ export class OrganizationsService {
       .execute();
   }
 
-  async findAll(user: User) {
-    return await this.organizationRepository
-      .createQueryBuilder('organizations')
-      .leftJoinAndSelect('organizations.user', 'user')
+  async findAll({
+    user,
+    pageOptionsDto,
+  }: {
+    user: User;
+    pageOptionsDto: PageOptionsDto;
+  }) {
+    const queryBuilder =
+      await this.organizationRepository.createQueryBuilder('organizations');
+
+    queryBuilder
+      .leftJoin('organizations.user', 'user')
       .where('user.id = :id', { id: user.id })
-      .getMany();
+      .orderBy('organizations.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async findOne(user: User, id: string) {

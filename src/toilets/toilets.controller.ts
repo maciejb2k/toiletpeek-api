@@ -9,6 +9,8 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Query,
+  ClassSerializerInterceptor,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ToiletsService } from './toilets.service';
 import { CreateToiletDto } from './dto/create-toilet.dto';
@@ -20,16 +22,22 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { User } from 'src/common/decorators';
 import { User as UserEntity } from 'src/users/user.entity';
 import { ToiletParams } from './dto/toilet.params';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 
 @ApiTags('toilets')
 @UseGuards(OrGuard([AuthenticatedGuard, JwtAuthGuard]))
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('toilets')
 export class ToiletsController {
   constructor(private readonly toiletsService: ToiletsService) {}
 
   @Get()
-  findAll(@User() user: UserEntity, @Query() params: ToiletParams) {
-    return this.toiletsService.findAll(user, params);
+  findAll(
+    @User() user: UserEntity,
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() params: ToiletParams,
+  ) {
+    return this.toiletsService.findAll({ user, pageOptionsDto, params });
   }
 
   @Get(':id')

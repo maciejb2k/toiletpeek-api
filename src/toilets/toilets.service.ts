@@ -8,6 +8,9 @@ import { User } from 'src/users/user.entity';
 import { ToiletParams } from './dto/toilet.params';
 import { Restroom } from 'src/restrooms/entities/restroom.entity';
 import * as bcrypt from 'bcrypt';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+import { PageDto } from 'src/common/dto/page.dto';
 
 @Injectable()
 export class ToiletsService {
@@ -41,13 +44,37 @@ export class ToiletsService {
     return toilet;
   }
 
-  async findAll(user: User, params: ToiletParams) {
-    const restroom = await this.findRestroom(user, params);
+  async findAll({
+    user,
+    pageOptionsDto,
+    params,
+  }: {
+    user: User;
+    pageOptionsDto: PageOptionsDto;
+    params: ToiletParams;
+  }) {
+    const { organizationId, restroomId } = params;
 
-    return await this.toiletRepository
-      .createQueryBuilder('toilet')
-      .andWhere('toilet.restroomId = :restroomId', { restroomId: restroom.id })
-      .getMany();
+    const queryBuilder =
+      await this.toiletRepository.createQueryBuilder('toilet');
+
+    queryBuilder
+      .leftJoin('toilet.restroom', 'restroom')
+      .leftJoin('restroom.organization', 'organization')
+      .leftJoin('organization.user', 'user')
+      .where('organization.id = :organizationId', { organizationId })
+      .andWhere('restroom.id = :restroomId', { restroomId })
+      .andWhere('user.id = :userId', { userId: user.id })
+      .orderBy('toilet.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async findOne(user: User, params: ToiletParams, id: string) {

@@ -7,6 +7,9 @@ import { Repository } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Organization } from 'src/organizations/entities/organization.entity';
 import { RestroomParams } from './dto/restroom.params';
+import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+import { PageDto } from 'src/common/dto/page.dto';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
 
 @Injectable()
 export class RestroomsService {
@@ -38,16 +41,35 @@ export class RestroomsService {
     return restroom;
   }
 
-  async findAll(user: User, params: RestroomParams) {
+  async findAll({
+    user,
+    pageOptionsDto,
+    params,
+  }: {
+    user: User;
+    pageOptionsDto: PageOptionsDto;
+    params: RestroomParams;
+  }) {
     const { organizationId } = params;
 
-    return await this.restroomRepository
-      .createQueryBuilder('restrooms')
-      .leftJoinAndSelect('restrooms.organization', 'organization')
-      .leftJoinAndSelect('organization.user', 'user')
+    const queryBuilder =
+      await this.restroomRepository.createQueryBuilder('restrooms');
+
+    queryBuilder
+      .leftJoin('restrooms.organization', 'organization')
+      .leftJoin('organization.user', 'user')
       .where('organization.id = :organizationId', { organizationId })
       .andWhere('user.id = :userId', { userId: user.id })
-      .getMany();
+      .orderBy('restrooms.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async findOne(user: User, params: RestroomParams, id: string) {
@@ -55,8 +77,8 @@ export class RestroomsService {
 
     return await this.restroomRepository
       .createQueryBuilder('restrooms')
-      .leftJoinAndSelect('restrooms.organization', 'organization')
-      .leftJoinAndSelect('organization.user', 'user')
+      .leftJoin('restrooms.organization', 'organization')
+      .leftJoin('organization.user', 'user')
       .where('restrooms.id = :restroomId', { restroomId: id })
       .andWhere('organization.id = :organizationId', { organizationId })
       .andWhere('user.id = :userId', { userId: user.id })

@@ -8,6 +8,9 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
@@ -18,9 +21,13 @@ import { OrGuard } from '@nest-lab/or-guard';
 import { AuthenticatedGuard } from 'src/auth/guards/authenticated.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageDto } from 'src/common/dto/page.dto';
+import { Organization } from './entities/organization.entity';
 
 @ApiTags('organizations')
 @UseGuards(OrGuard([AuthenticatedGuard, JwtAuthGuard]))
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('organizations')
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
@@ -34,8 +41,11 @@ export class OrganizationsController {
   }
 
   @Get()
-  findAll(@User() user: UserEntity) {
-    return this.organizationsService.findAll(user);
+  findAll(
+    @User() user: UserEntity,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ): Promise<PageDto<Organization>> {
+    return this.organizationsService.findAll({ user, pageOptionsDto });
   }
 
   @Get(':id')
