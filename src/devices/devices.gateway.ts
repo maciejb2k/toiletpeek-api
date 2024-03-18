@@ -79,7 +79,7 @@ export class DevicesGateway
 
       console.log('Successfully connected and authorized to the server!');
     } catch (error) {
-      console.log('Client unauthorized');
+      console.log('Device unauthorized: ', error);
       socket.disconnect();
     }
   }

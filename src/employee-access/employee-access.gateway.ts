@@ -31,7 +31,7 @@ export class EmployeeAccessGateway
 
       console.log('Client authorized and connected.', organization);
     } catch (error) {
-      console.log('Client unauthorized!');
+      console.log('Employee unauthorized:', error);
       socket.disconnect();
     }
   }
